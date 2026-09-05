@@ -1,0 +1,215 @@
+index.html<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Barbería - Analizador de Rostro</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#111;
+  color:white;
+  text-align:center;
+}
+header{
+  padding:25px 15px;
+  background:#000;
+}
+h1{margin:0;font-size:28px}
+.sub{color:#ccc;margin-top:8px}
+
+.contenedor{
+  max-width:600px;
+  margin:auto;
+  padding:20px;
+}
+
+button{
+  background:#d4af37;
+  border:0;
+  border-radius:10px;
+  padding:15px 22px;
+  font-size:17px;
+  font-weight:bold;
+  margin:10px;
+  cursor:pointer;
+}
+
+video{
+  width:100%;
+  max-width:450px;
+  border-radius:20px;
+  margin-top:15px;
+  background:#222;
+}
+
+#resultado{
+  display:none;
+  background:#1d1d1d;
+  border-radius:18px;
+  padding:20px;
+  margin-top:20px;
+}
+
+.corte{
+  background:#292929;
+  border-radius:12px;
+  padding:14px;
+  margin:10px 0;
+  text-align:left;
+}
+
+.corte strong{
+  color:#d4af37;
+  font-size:19px;
+}
+
+.nota{
+  font-size:13px;
+  color:#aaa;
+  margin-top:20px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>✂️ BARBERÍA</h1>
+<div class="sub">Encuentra el corte ideal para tu rostro</div>
+</header>
+
+<div class="contenedor">
+
+<h2>🤳 Analiza tu rostro</h2>
+
+<p>
+Coloca tu rostro frente a la cámara y nuestro sistema
+te dará una recomendación.
+</p>
+
+<button onclick="iniciarCamara()">📷 Analizar mi rostro</button>
+
+<video id="video" autoplay playsinline></video>
+
+<button onclick="analizar()" id="botonAnalizar" style="display:none">
+🔎 Analizar rostro
+</button>
+
+<div id="resultado"></div>
+
+<div class="nota">
+El análisis es orientativo. La recomendación final depende
+también del cabello, estilo y preferencias del cliente.
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+
+<script>
+const video = document.getElementById("video");
+const resultado = document.getElementById("resultado");
+const boton = document.getElementById("botonAnalizar");
+
+let stream;
+
+async function iniciarCamara(){
+
+  try{
+
+    stream = await navigator.mediaDevices.getUserMedia({
+      video:{
+        facingMode:"user",
+        width:{ideal:640},
+        height:{ideal:480}
+      }
+    });
+
+    video.srcObject = stream;
+    boton.style.display = "inline-block";
+
+  }catch(error){
+
+    alert("No se pudo abrir la cámara. Debes permitir el acceso a la cámara.");
+
+  }
+}
+
+function analizar(){
+
+  const ancho = video.videoWidth;
+  const alto = video.videoHeight;
+
+  /*
+  Análisis aproximado usando proporciones de la imagen.
+  Para una versión más avanzada podemos usar puntos faciales
+  de MediaPipe.
+  */
+
+  let proporcion = ancho / alto;
+
+  let tipo;
+  let cortes;
+
+  if(proporcion > 1.15){
+
+    tipo = "Rostro posiblemente OVALADO";
+
+    cortes = [
+      "Taper Fade",
+      "Low Fade",
+      "French Crop",
+      "Quiff",
+      "Side Part"
+    ];
+
+  }else if(proporcion < 0.85){
+
+    tipo = "Rostro posiblemente ALARGADO";
+
+    cortes = [
+      "Low Fade",
+      "Side Part",
+      "Textured Crop",
+      "Taper clásico",
+      "Pompadour moderado"
+    ];
+
+  }else{
+
+    tipo = "Rostro posiblemente REDONDO o CUADRADO";
+
+    cortes = [
+      "Mid Fade",
+      "High Fade",
+      "Taper Fade",
+      "Textured Crop",
+      "Quiff"
+    ];
+  }
+
+  resultado.style.display = "block";
+
+  resultado.innerHTML = `
+    <h2>✨ Resultado</h2>
+
+    <h3>${tipo}</h3>
+
+    <p>Según el análisis, estos cortes pueden favorecer tus facciones:</p>
+
+    ${cortes.map(corte => `
+      <div class="corte">
+        ✂️ <strong>${corte}</strong>
+      </div>
+    `).join("")}
+
+    <p>💈 Pregunta a tu barbero cuál se adapta mejor a tu cabello y estilo.</p>
+  `;
+}
+</script>
+
+</body>
+</html>
